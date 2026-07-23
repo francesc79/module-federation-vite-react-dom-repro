@@ -1,0 +1,19 @@
+{
+  "name": "@repro/development-library",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "browser": "./build/index.js",
+      "import": "./build/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@reduxjs/toolkit": "2.12.0",
+    "react": "19.2.7",
+    "react-redux": "9.3.0"
+  }
+}

@@ -2,8 +2,10 @@
 
 Minimal reproduction for mixed Vite dependency-optimizer generations with:
 
-- `@module-federation/vite@1.19.1`
+- the `@module-federation/vite` artifact from PR #964
 - `@module-federation/enhanced@2.8.0`
+- a workspace package resolved from source through its `development` export
+- an RTK Query store and a direct `react-redux` import in the exposed graph
 - `vite@8.0.16`
 - `react@19.2.7`
 - `react-dom@19.2.7`
@@ -53,10 +55,38 @@ pnpm repro:control
 
 The control renders successfully and exits with code 0.
 
+The PR-specific retained-generation control keeps Module Federation enabled but disables only the discarded-generation simulator:
+
+```bash
+pnpm repro:retained-generation
+```
+
+This also renders successfully. It demonstrates both sides of the regression:
+
+- PR #964 works when its initial React DOM selectors are retained;
+- the original mismatch returns when that initial generation is discarded and Vite falls back to runtime discovery.
+
 ## Why the small config probe exists
 
-The application that exposed the issue naturally produced separate optimizer waves: `react-dom` was published before `react-dom/client`, while Vite's dependency scan was still in progress.
+PR #964 adds direct and nested React DOM subpath selectors to Vite's initial `optimizeDeps.include` list. That fixes the original small fixture when the initial generation completes normally.
 
-Module Federation adds `react-dom` and its public subpaths to the resolved initial `optimizeDeps.include` list. The small `repro:force-late-react-dom-subpath-discovery` plugin removes only `react-dom/*` from that resolved initial list. It does not exclude, alias, mock, or replace those modules. Vite discovers and optimizes `react-dom/client` normally at runtime.
+The larger application still fails because an earlier dependency update throws while reading `browserHash`. The complete initial generation, including the selectors added by PR #964, is then absent from the published optimizer metadata. Vite subsequently rediscovers `react-dom` and `react-dom/client` in separate runtime generations.
 
-This is test instrumentation that makes the observed wave ordering deterministic in a tiny repository. It is not a proposed application configuration or workaround. The negative control demonstrates that the same late discovery remains coherent without Module Federation.
+The `repro:simulate-discarded-initial-react-dom-generation` plugin models only that discarded state by removing the direct and nested React DOM subpath entries from the resolved initial list. It does not exclude, alias, mock, or replace React DOM. Vite still discovers and optimizes the modules normally at runtime.
+
+This is test instrumentation, not a proposed application configuration or workaround. The negative control demonstrates that the same runtime discovery remains coherent without Module Federation.
+
+The fixture also keeps the relevant package-resolution shape from the larger
+application. `@repro/development-library` declares
+`exports["."].development`, while Vite resolves
+`['development', 'module', 'browser', 'default']`. Testing that conditional
+export in isolation did not reproduce the failure, so it is represented here
+as part of the graph rather than claimed as the root cause.
+
+## Install the PR artifact explicitly
+
+The lockfile pins the artifact published for PR #964:
+
+```bash
+pnpm add -D https://pkg.pr.new/@module-federation/vite@964
+```

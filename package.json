@@ -11,16 +11,20 @@
     "dev": "vite",
     "repro": "node scripts/repro-check.mjs",
     "repro:control": "node scripts/repro-check.mjs --without-federation",
+    "repro:retained-generation": "RETAIN_INITIAL_REACT_DOM_GENERATION=true node scripts/repro-check.mjs",
     "build": "vite build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@module-federation/enhanced": "2.8.0",
+    "@reduxjs/toolkit": "2.12.0",
+    "@repro/development-library": "workspace:*",
     "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.7",
+    "react-redux": "9.3.0"
   },
   "devDependencies": {
-    "@module-federation/vite": "1.19.1",
+    "@module-federation/vite": "https://pkg.pr.new/@module-federation/vite@964",
     "@types/node": "25.7.0",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",

@@ -10,6 +10,7 @@ import { chromium } from 'playwright';
 const projectDirectory = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const viteBinary = resolve(projectDirectory, 'node_modules/vite/bin/vite.js');
 const withoutFederation = process.argv.includes('--without-federation');
+const retainInitialReactDomGeneration = process.env.RETAIN_INITIAL_REACT_DOM_GENERATION === 'true';
 const port = 5173;
 const url = `http://127.0.0.1:${port}/`;
 
@@ -128,7 +129,12 @@ try {
   const reactDom = moduleResponses.find(response => /\/react-dom\.js\?/.test(response.url));
   const reactDomClient = moduleResponses.find(response => /\/react-dom_client\.js\?/.test(response.url));
 
-  console.log(`Mode: ${withoutFederation ? 'control without Module Federation' : 'Module Federation 1.19.1'}`);
+  const mode = withoutFederation
+    ? 'control without Module Federation'
+    : retainInitialReactDomGeneration
+      ? 'Module Federation PR #964 with retained initial generation'
+      : 'Module Federation PR #964 with discarded initial generation';
+  console.log(`Mode: ${mode}`);
   console.log(`Page errors: ${pageErrors.length ? JSON.stringify(pageErrors) : 'none'}`);
 
   if (reactDom) {
