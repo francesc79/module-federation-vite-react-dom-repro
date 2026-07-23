@@ -11,9 +11,15 @@ The requested module '/node_modules/.vite/deps/react-dom.js?v=<hash>'
 does not provide an export named 't'
 ```
 
+## Minimal reproduction
+
+https://github.com/francesc79/module-federation-vite-react-dom-repro
+
 ## Reproduction
 
 ```bash
+git clone https://github.com/francesc79/module-federation-vite-react-dom-repro.git
+cd module-federation-vite-react-dom-repro
 corepack enable
 pnpm install
 pnpm repro
